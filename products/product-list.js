@@ -25,17 +25,21 @@ export default function () {
 
     check(res, {
         'status is 200': (r) => r.status === 200,
-        'response has data': (r) => {
+        'response is JSON': (r) => {
             try {
-                const json = r.json();
-                return json && json.data !== undefined;
+                r.json();
+                return true;
             } catch (_) {
                 return false;
             }
         },
         'has products': (r) => {
-            const json = r.json();
-            return json.data && Array.isArray(json.data.data) && json.data.data.length > 0;
+            try {
+                const json = r.json();
+                return json && json.data && Array.isArray(json.data.data) && json.data.data.length > 0;
+            } catch (_) {
+                return false;
+            }
         },
     });
 }
