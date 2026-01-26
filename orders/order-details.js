@@ -11,19 +11,10 @@ const customHeaders = Object.assign({}, headers, {
     'Authorization': `Bearer ${authToken}`,
 });
 
-// Test uchun order ID lari (real ID larni kiriting)
-const orderIds = [
-    '46c38a32-8971-46b1-a63d-d35d8652b43c',
-    'f2682759-ecf8-42b1-8fdc-df9ecadfb400',
-];
-
 export default function () {
-    // Random order ID tanlash
-    const randomOrderId = orderIds[Math.floor(Math.random() * orderIds.length)];
-
     const payload = JSON.stringify({
         data: {
-            order_id: randomOrderId,
+            order_id: "758a587f-8ff8-41c0-9981-aa18260b4fae",
         },
     });
 
@@ -31,14 +22,7 @@ export default function () {
 
     check(res, {
         'status is 200': (r) => r.status === 200,
-        'response has order': (r) => {
-            try {
-                const json = r.json();
-                return json && json.data && json.data !== undefined;
-            } catch (_) {
-                return false;
-            }
-        },
+        'response has order': (r) => r.json().data !== undefined,
     });
 
     sleep(1);
