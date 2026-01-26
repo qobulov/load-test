@@ -34,14 +34,10 @@ export default function () {
             }
         },
         'has products': (r) => {
-            try {
-                const json = r.json();
-                return json.data && Array.isArray(json.data);
-            } catch (_) {
-                return false;
-            }
+            const json = r.json();
+            return json.data && Array.isArray(json.data.data) && json.data.data.length > 0;
         },
     });
 
-    sleep(1);
+    sleep(0.9);
 }

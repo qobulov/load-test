@@ -39,5 +39,5 @@ export default function () {
         },
     });
 
-    sleep(1);
+    sleep(0.9);
 }
