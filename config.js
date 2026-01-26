@@ -9,24 +9,25 @@ export const authToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiO
 
 // Default headers
 export const headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json, text/plain, */*',
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+  Authorization: `Bearer ${authToken}`,
 };
 
 // Load test options
 export const testOptions = {
-    scenarios: {
-        target_rps: {
-            executor: 'constant-arrival-rate',
-            rate: 500, // Target 500 RPS
-            timeUnit: '1s',
-            duration: '1m',
-            preAllocatedVUs: 100,
-            maxVUs: 1000,
-        },
+  scenarios: {
+    target_rps: {
+      executor: 'constant-arrival-rate',
+      rate: 500,
+      timeUnit: '1s',
+      duration: '30s',
+      preAllocatedVUs: 300,
+      maxVUs: 1200,
     },
-    thresholds: {
-        http_req_failed: ['rate<0.01'],  // Less than 1% errors
-        http_req_duration: ['p(95)<2000'], // 95% of requests under 2s
-    },
+  },
+  thresholds: {
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['p(95)<2000'],
+  },
 };
