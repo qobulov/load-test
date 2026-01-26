@@ -22,7 +22,14 @@ export default function () {
 
     check(res, {
         'status is 200': (r) => r.status === 200,
-        'response has order': (r) => r.json().data !== undefined,
+        'response has order': (r) => {
+            try {
+                const json = r.json();
+                return json && json.data !== undefined;
+            } catch (_) {
+                return false;
+            }
+        },
     });
 
     sleep(1);
