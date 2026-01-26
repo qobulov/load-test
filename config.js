@@ -15,13 +15,18 @@ export const headers = {
 
 // Load test options
 export const testOptions = {
-    stages: [
-        { duration: '7s', target: 500 },
-        { duration: '20s', target: 1000 },  // 1000 VU da saqlab turish
-        { duration: '5s', target: 0 }     // Sekin to'xtatish
-    ],
+    scenarios: {
+        target_rps: {
+            executor: 'constant-arrival-rate',
+            rate: 500, // Target 500 RPS
+            timeUnit: '1s',
+            duration: '1m',
+            preAllocatedVUs: 100,
+            maxVUs: 1000,
+        },
+    },
     thresholds: {
-        http_req_failed: ['rate<0.01'],  // 1% dan kam xato
-        http_req_duration: ['p(95)<2000'], // 95% request 2s dan tez bo'lishi kerak
+        http_req_failed: ['rate<0.01'],  // Less than 1% errors
+        http_req_duration: ['p(95)<2000'], // 95% of requests under 2s
     },
 };

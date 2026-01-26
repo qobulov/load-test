@@ -38,6 +38,4 @@ export default function () {
             return json.data && Array.isArray(json.data.data) && json.data.data.length > 0;
         },
     });
-
-    sleep(0.9);
 }
