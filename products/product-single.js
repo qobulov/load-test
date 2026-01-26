@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { baseUrl, projectId, environmentId, headers, testOptions, authToken } from '../config.js';
+import { baseUrl, projectId, environmentId, headers, testOptions, authToken, appId } from '../config.js';
 
 export const options = testOptions;
 
@@ -14,6 +14,7 @@ const customHeaders = Object.assign({}, headers, {
 export default function () {
     const payload = JSON.stringify({
         data: {
+            app_id: appId,
             product_id: "c29f75b5-cc3d-4241-afc5-eb42acb61a7d",
         },
     });
@@ -31,6 +32,4 @@ export default function () {
             }
         },
     });
-
-    sleep(1);
 }

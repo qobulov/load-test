@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { baseUrl, projectId, environmentId, headers, testOptions, authToken } from '../config.js';
+import { baseUrl, projectId, environmentId, headers, testOptions, authToken, appId } from '../config.js';
 
 export const options = testOptions;
 
@@ -23,6 +23,7 @@ export default function () {
 
     const payload = JSON.stringify({
         data: {
+            app_id: appId,
             search: randomTerm,
         },
     });
