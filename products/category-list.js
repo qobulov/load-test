@@ -23,7 +23,7 @@ export default function () {
         'response has categories': (r) => {
             try {
                 const json = r.json();
-                return json && json.data && Array.isArray(json.data);
+                return json && json.data && Array.isArray(json.data.data);
             } catch (_) {
                 return false;
             }
