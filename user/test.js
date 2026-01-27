@@ -24,7 +24,7 @@ export default function () {
         'response has data': (r) => {
             try {
                 const json = r.json();
-                return json && json.status !== undefined;
+                return json && json.status !== null;
             } catch (_) {
                 return false;
             }

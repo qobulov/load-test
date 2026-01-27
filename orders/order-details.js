@@ -15,7 +15,7 @@ export default function () {
     const payload = JSON.stringify({
         data: {
             app_id: appId,
-            order_id: "758a587f-8ff8-41c0-9981-aa18260b4fae",
+            order_id: __ITER % 3 === 0 ? "758a587f-8ff8-41c0-9981-aa18260b4fae" : "9e5fbccb-1eaa-4d9c-9ef1-54ed4e17dd9e",
         },
     });
 
@@ -26,7 +26,7 @@ export default function () {
         'response has order': (r) => {
             try {
                 const json = r.json();
-                return json && json.data !== undefined;
+                return json && json.data != null;
             } catch (_) {
                 return false;
             }

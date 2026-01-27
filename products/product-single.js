@@ -15,7 +15,7 @@ export default function () {
     const payload = JSON.stringify({
         data: {
             app_id: appId,
-            product_id: "c29f75b5-cc3d-4241-afc5-eb42acb61a7d",
+            product_id: __ITER % 3 === 0 ? "1423b21f-ec77-5d7f-aeb0-e23504ee0ffc" : "c29f75b5-cc3d-4241-afc5-eb42acb61a7d",
         },
     });
 
@@ -26,7 +26,7 @@ export default function () {
         'response has product': (r) => {
             try {
                 const json = r.json();
-                return json && json.data && json.data !== undefined;
+                return json && json.data != null;
             } catch (_) {
                 return false;
             }

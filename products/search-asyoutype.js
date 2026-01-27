@@ -35,7 +35,7 @@ export default function () {
         'response has results': (r) => {
             try {
                 const json = r.json();
-                return json && json.data !== undefined;
+                return json && json.data !== null;
             } catch (_) {
                 return false;
             }

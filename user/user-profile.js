@@ -25,7 +25,7 @@ export default function () {
         'response has user': (r) => {
             try {
                 const json = r.json();
-                return json && json.data && json.data !== undefined;
+                return json && json.data != null;
             } catch (_) {
                 return false;
             }
