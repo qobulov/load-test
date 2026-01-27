@@ -1,6 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { baseUrl, projectId, environmentId, headers, testOptions, authToken, appId } from '../config.js';
+import { baseUrl, projectId, environmentId, headers, testOptions, appId } from '../config.js';
 
 export const options = testOptions;
 
@@ -8,7 +8,6 @@ const url = `${baseUrl}/content/product/single?project-id=${projectId}`;
 
 const customHeaders = Object.assign({}, headers, {
     'environment-id': environmentId,
-    'Authorization': `Bearer ${authToken}`,
 });
 
 export default function () {
