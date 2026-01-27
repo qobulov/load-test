@@ -14,10 +14,10 @@ export default function () {
     const payload = JSON.stringify({
         data: {
             app_id: appId,
-            product_id: __ITER % 3 === 0 ? "1423b21f-ec77-5d7f-aeb0-e23504ee0ffc" : "c29f75b5-cc3d-4241-afc5-eb42acb61a7d",
+            product_group_id: __ITER % 3 === 0 ? "6ce59315-a6ed-41f7-b02a-5586fab0d6f8" : "6ce59315-a6ed-41f7-b02a-5586fab0d6f8",
         },
     });
-
+    
     const res = http.post(url, payload, { headers: customHeaders });
 
     check(res, {
@@ -25,7 +25,7 @@ export default function () {
         'response has product': (r) => {
             try {
                 const json = r.json();
-                return json && json.data != null;
+                return json && json.data && json.data.guid;
             } catch (_) {
                 return false;
             }
