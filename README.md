@@ -14,6 +14,7 @@ Bu servis real-time chat backend:
 - yangi xabarni socket orqali broadcast qiladi
 - unread count hisoblaydi
 - simple presence (`online`/`offline`) yuritadi
+- typing indicator (yozayotganlik bildiruvchisi) qo'llab-quvvatlaydi
 - REST va Socket.IO usullarini birga ishlatadi
 
 Servis ichida alohida `users` jadvali yo'q. Servis user identifikatori sifatida tashqi tizimdan keladigan `row_id` bilan ishlaydi. Demak, bu backend user management tizimi emas, balki chat orchestration qatlamidir.
@@ -946,7 +947,95 @@ Muhim cheklov:
 
 Demak, message edit multi-client sync hozir to'liq emas.
 
-### 11.9 Presence eventlar
+### 11.9 Typing indicator eventlar
+
+Typing indicator — foydalanuvchi xabar yozayotganini boshqa room a'zolariga real-time ko'rsatish mexanizmi.
+
+#### Eventlar:
+
+- `typing:start` — foydalanuvchi yozishni boshladi
+- `typing:stop` — foydalanuvchi yozishni to'xtatdi
+
+#### Client -> Server payload:
+
+```json
+{
+  "room_id": "c239d653-b50c-422b-bb49-77d16103a8bb",
+  "user_name": "Shoh",
+  "row_id": "369e2ebd-f486-41b2-99cf-efb803b827f5",
+  "project_id": "b99fe3e9-6efb-4f75-b306-6b48f3d18ae0"
+}
+```
+
+Fieldlar:
+
+- `room_id` — majburiy, qaysi xonaga tegishli ekanini bildiradi
+- `user_name` — UI da ko'rsatish uchun foydalanuvchi nomi
+- `row_id` — presence yangilash uchun foydalanuvchi identifikatori
+- `project_id` — presence heartbeat uchun loyiha identifikatori
+
+#### Backend logikasi (`onTypingStart`):
+
+1. Payloaddan `room_id` olinadi, bo'sh bo'lsa ignore qilinadi
+2. Agar `row_id` va `project_id` mavjud bo'lsa, `PresenceHeartbeat` chaqiriladi — bu foydalanuvchining bazadagi `user_presence` jadvalidagi `last_seen_at` vaqtini yangilaydi va uni `online` holatida saqlab turadi
+3. Payloadni aynan shu `room_id` ga ulangan barcha boshqa socketlarga broadcast qiladi (`s.io.To(roomId).Emit("typing:start", reqMap)`)
+
+#### Backend logikasi (`onTypingStop`):
+
+1. Payloaddan `room_id` olinadi
+2. Payloadni room ichidagi barcha socketlarga broadcast qiladi
+3. Presence yangilanmaydi (faqat `typing:start` da yangilanadi)
+
+#### Frontend (client) tomoni qanday ishlaydi:
+
+Debounce pattern ishlatiladi:
+
+1. Foydalanuvchi xabar inputiga yozishni boshlasa, `typing:start` emit qilinadi
+2. Har bir keypress da taymer qayta tiklanadi (1.5 soniya)
+3. Agar 1.5 soniya davomida yangi keypress bo'lmasa, `typing:stop` emit qilinadi
+4. Xabar yuborilganda ham `typing:stop` darhol emit qilinadi
+
+```
+User yoza boshlaydi -> typing:start emit
+  |-- har keypress: taymer reset (1.5s)
+  |-- 1.5s o'tdi, keypress yo'q -> typing:stop emit
+  |-- yoki "Send" bosildi -> typing:stop emit
+```
+
+#### Listening (tinglash) tomoni:
+
+Boshqa client `typing:start` eventini qabul qilganda:
+
+1. Kim yozayotganini `user_name` dan oladi
+2. UI da "Shoh is typing..." ko'rinishida animatsiya ko'rsatadi
+3. `typing:stop` kelganda yoki xabar kelganda indikatorni yashiradi
+
+#### Muhim xususiyatlar:
+
+- Typing ma'lumotlari **bazaga saqlanmaydi** — faqat real-time broadcast
+- `typing:start` har safar presence heartbeat ham bajaradi, shuning uchun tez-tez yozayotgan user hech qachon "offline" ga tushib qolmaydi
+- Server o'zi typing holatini saqlamaydi, faqat clientlar orasida relay (uzatish) qiladi
+- Bitta roomda bir nechta user bir vaqtda yozayotgan bo'lishi mumkin
+
+#### Misol oqim:
+
+```
+Shoh yozishni boshlaydi:
+  Client A -> Server: typing:start { room_id, user_name: "Shoh", row_id, project_id }
+  Server -> Client B: typing:start { room_id, user_name: "Shoh", row_id, project_id }
+  Server: PresenceHeartbeat(row_id, project_id) -> DB yangilanadi
+
+Shoh 1.5s yozmaydi:
+  Client A -> Server: typing:stop { room_id, user_name: "Shoh", ... }
+  Server -> Client B: typing:stop { room_id, user_name: "Shoh", ... }
+
+Shoh xabar yuboradi:
+  Client A -> Server: typing:stop (darhol)
+  Client A -> Server: chat message { ... }
+  Server -> Room: chat message { ... }
+```
+
+### 11.10 Presence eventlar
 
 Eventlar:
 
@@ -962,7 +1051,7 @@ Logika:
 - `presence:get` bitta user holatini qaytaradi
 - `disconnected` offline qiladi
 
-### 11.10 Presence sweeper
+### 11.11 Presence sweeper
 
 Fon goroutine har 1 daqiqada:
 
@@ -1100,24 +1189,151 @@ Nega `room_members`da saqlanadi:
 
 Shuning uchun bu fieldlar room darajasida emas, member darajasida turibdi.
 
-## 18. `attributes` maydonlari nima
+## 18. `attributes` maydonlari nima va qanday ishlatiladi
 
-Ikkita joyda `attributes` bor:
+### 18.1 Umumiy tushuncha
 
-- `rooms.attributes`
-- `room_members.attributes`
+`attributes` — bu `JSONB` formatdagi universal key-value maydon. Schema (jadval ustunlari) o'zgartirmasdan istalgan qo'shimcha ma'lumotni saqlash imkonini beradi.
 
-Vazifasi:
+Ikkita joyda `attributes` mavjud:
 
-- schema o'zgartirmasdan custom metadata saqlash
-- frontendga kerak bo'ladigan qo'shimcha flaglar
-- role, avatar, custom labels, entity metadata va hokazo
+| Jadval | Maydon | Maqsad |
+|---|---|---|
+| `rooms` | `rooms.attributes` | Room darajasidagi umumiy metadata. **Room list javobida qaytadi.** |
+| `room_members` | `room_members.attributes` | Har bir member uchun alohida metadata. Hozirgi kodda room list javobida **qaytmaydi.** |
 
-Server:
+Server attributes bilan quyidagicha ishlaydi:
 
-- map bo'lsa JSONga marshal qiladi
-- string bo'lsa valid JSON bo'lsa qabul qiladi
-- hech narsa bo'lmasa `{}` saqlaydi
+- JSON map bo'lsa — marshal qilib saqlaydi
+- string bo'lsa — valid JSON ekanini tekshirib saqlaydi
+- hech narsa bo'lmasa — `{}` (bo'sh ob'yekt) saqlaydi
+
+### 18.2 Profil rasm va meeting URL saqlash
+
+Telemedicina, konsultatsiya yoki shunga o'xshash ilovalar uchun chat xonasining headerida **qarshi tarafning profil rasmi** va **meeting havolasi** ko'rsatish kerak bo'ladi.
+
+Buning uchun `rooms.attributes` ichida ikkala foydalanuvchining ma'lumotlarini `row_id` kalit (key) sifatida saqlab qo'yish **eng yaxshi va oddiy yechim**:
+
+#### Room yaratish payloadi:
+
+```json
+{
+  "row_id": "48dc336f-17b6-4c0f-ad4b-d2e67b13ec2e",
+  "project_id": "592e6339-d867-489e-8e6a-74ea28e0818d",
+  "type": "single",
+  "to_row_id": "515b0f7d-84c6-45ca-a600-5f9d1690a823",
+  "to_name": "Dr. Kawsar",
+  "from_name": "Ali",
+
+  "attributes": {
+    "meeting_url": "https://meet.google.com/xxx-xxxx-xxx",
+    "meeting_date": "Онлайн запись 17 окт. 2025, 14:30",
+    "profiles": {
+      "48dc336f-17b6-4c0f-ad4b-d2e67b13ec2e": {
+        "name": "Ali",
+        "pic": "https://cdn.example.com/ali.jpg"
+      },
+      "515b0f7d-84c6-45ca-a600-5f9d1690a823": {
+        "name": "Dr. Kawsar",
+        "pic": "https://cdn.example.com/kawsar.jpg"
+      }
+    }
+  }
+}
+```
+
+#### Room list javobida qaytishi:
+
+```json
+{
+  "id": "c239d653-b50c-422b-bb49-77d16103a8bb",
+  "name": "...",
+  "type": "single",
+  "to_name": "Dr. Kawsar",
+  "to_row_id": "515b0f7d-84c6-45ca-a600-5f9d1690a823",
+  "attributes": {
+    "meeting_url": "https://meet.google.com/xxx-xxxx-xxx",
+    "meeting_date": "Онлайн запись 17 окт. 2025, 14:30",
+    "profiles": {
+      "48dc336f-...": { "name": "Ali", "pic": "https://cdn.example.com/ali.jpg" },
+      "515b0f7d-...": { "name": "Dr. Kawsar", "pic": "https://cdn.example.com/kawsar.jpg" }
+    }
+  },
+  "user_presence_status": "online",
+  "user_presence_last_seen": "Mon, 24 Mar 2026 12:00:00 UTC"
+}
+```
+
+### 18.3 Clientda qarshi tarafning profil rasmini olish
+
+Room list javobida `to_row_id` maydoni **doim qarshi tarafning** IDsini ko'rsatadi:
+
+- Ali kirganda: `to_row_id = "515b0f7d-..."` (ya'ni Dr. Kawsar)
+- Dr. Kawsar kirganda: `to_row_id = "48dc336f-..."` (ya'ni Ali)
+
+Shuning uchun client tomonda:
+
+```dart
+// Flutter / Dart misol
+final room = roomsListItem;
+final attrs = room['attributes'] ?? {};
+final profiles = attrs['profiles'] as Map? ?? {};
+final toRowId = room['to_row_id'];  // qarshi taraf IDsi
+
+// Qarshi tarafning profil rasmi
+final otherProfile = profiles[toRowId] ?? {};
+final profilePic = otherProfile['pic'] ?? '';
+final meetingUrl = attrs['meeting_url'] ?? '';
+
+// UI da ishlatish
+CircleAvatar(backgroundImage: NetworkImage(profilePic));
+
+if (meetingUrl.isNotEmpty)
+  GestureDetector(
+    onTap: () => launchUrl(Uri.parse(meetingUrl)),
+    child: Text(meetingUrl, style: TextStyle(color: Colors.blue)),
+  );
+```
+
+```javascript
+// JavaScript misol
+const room = roomsListItem;
+const attrs = room.attributes || {};
+const profiles = attrs.profiles || {};
+const toRowId = room.to_row_id;
+
+// Qarshi tarafning profil rasmi
+const otherPic = profiles[toRowId]?.pic || '';
+const meetingUrl = attrs.meeting_url || '';
+```
+
+### 18.4 Nima uchun `rooms.attributes` ishlatish afzal
+
+| Variant | Afzalligi | Kamchiligi |
+|---|---|---|
+| `rooms.attributes` | Room list javobida **avtomatik qaytadi**, backend o'zgartirish kerak emas | Ikkala user uchun bir xil ma'lumot ko'rinadi — client o'zi ajratishi kerak |
+| `room_members.attributes` | Har user uchun alohida saqlash mumkin | Hozirgi kodda room list javobida **qaytmaydi** — backendga o'zgartirish kerak |
+
+**Tavsiya:** `rooms.attributes` ichida `profiles` ob'yektini `row_id` bo'yicha kalit qilib saqlang. Client o'zi `to_row_id` yordamida qarshi tarafning ma'lumotini oladi.
+
+### 18.5 Qo'shimcha metadata misollari
+
+`attributes` ga har qanday key-value qo'shishingiz mumkin:
+
+```json
+{
+  "profiles": { ... },
+  "meeting_url": "https://meet.google.com/xxx",
+  "meeting_date": "17 окт. 2025, 14:30",
+  "room_icon": "https://cdn.example.com/room_icon.png",
+  "department": "Kardiologiya",
+  "priority": "high",
+  "tags": ["urgent", "vip"],
+  "custom_color": "#10b981"
+}
+```
+
+Servis bu ma'lumotlarni shunchaki saqlaydi va qaytaradi — ularni talqin qilish (interpret) va ko'rsatish to'liq client (mobil ilova / frontend) vazifasidir.
 
 ## 19. Presence qanday ishlaydi
 
