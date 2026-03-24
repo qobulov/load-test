@@ -3,6 +3,7 @@
 Bu hujjat [ucode_go_chat_service](https://github.com/Ucode-io/ucode_go_chat_service.git) loyihasining amaldagi kod bazasiga qarab yozildi. Maqsad faqat endpointlarni sanab chiqish emas, balki servis nima ish qiladi, qanday ishlaydi, qaysi qism nimaga javob beradi, qaysi field nimani anglatadi, qanday cheklovlar bor va qaysi joylarda noaniqlik yoki risk mavjudligini ham tushuntirish.
 
 BaseURL: https://chat-service.u-code.io
+
 ## 1. Servis nima vazifa bajaradi
 
 Bu servis real-time chat backend:
@@ -573,6 +574,8 @@ Client -> server eventlar:
 - `presence:get`
 - `message:read`
 - `message:update`
+- `typing:start`
+- `typing:stop`
 - `disconnected`
 
 Server -> client eventlar:
@@ -584,6 +587,8 @@ Server -> client eventlar:
 - `presence.updated`
 - `message.read`
 - `message.update`
+- `typing:start`
+- `typing:stop`
 - `error`
 
 Default limit qoidalari:
@@ -761,8 +766,10 @@ Fieldlar:
 - `created_at`
 - `updated_at`
 
-Muhim cheklov:
+Muhim cheklov (va so'nggi yangilanish):
 
+- Oldin jadval ichida xato bo'lib `project_id` qayd qilingan edi va DB da conflict berardi, bu muammo yaqinda to'liq yechildi.
+- Endi jadval faqatgina `row_id` ni o'zini butunlay yagona (Primary Key) sifatida ushlab xavfsiz ishlaydi.
 - presence global, project bo'yicha ajratilmagan
 - bitta `row_id` uchun bitta satr bor
 
@@ -875,6 +882,7 @@ Amalda:
 Vazifasi:
 
 - current userga tegishli roomlar ro'yxatini qaytarish
+- **YANGILANISH:** Payload endi `project_id` ni qabul qiladi. DB hozir ushbu `project_id` ni tekshirib, foydalanuvchining alohida faqat o'sha projectdagi xonalarinigina filtrlab qaytaradi. Turli loyihalar aro xonalar endi aralashib ketmaydi.
 
 Payloaddagi `type` bo'sh bo'lsa:
 
@@ -919,11 +927,11 @@ Vazifasi:
 - `last_read_at` ni update qilish
 - room ichiga `message.read` event yuborish
 
-Muhim:
+Muhim Yangilanish:
 
-- payload `room_id` kutadi
-- amaldagi test HTML esa `message_id` yuboradi
-- shuning uchun test UI bilan backend contract mos emas
+- payload `room_id` va `row_id` kutadi.
+- Yaqinda qilingan tahrir tufayli, Socket va test UI contracti to'liq bog'landi: Tizim mutlaqo birgalashgan holda aniq `room_id` ni uzatadi va eski non-standart `message_id` endi yuborilmaydi.
+- Bu tufayli avtomatik xonadagi Message Read statusi uzluksiz ishlaydi.
 
 ### 11.8 `message:update`
 
@@ -1223,7 +1231,6 @@ Kodga qarab mavjud emas:
 - per-user message receipt table
 - deleted message logikasi
 - message search
-- typing indicator
 - push notification
 - room archive/mute/pin
 
