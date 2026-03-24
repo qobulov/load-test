@@ -2,7 +2,7 @@
 
 Bu hujjat [ucode_go_chat_service](https://github.com/Ucode-io/ucode_go_chat_service.git) loyihasining amaldagi kod bazasiga qarab yozildi. Maqsad faqat endpointlarni sanab chiqish emas, balki servis nima ish qiladi, qanday ishlaydi, qaysi qism nimaga javob beradi, qaysi field nimani anglatadi, qanday cheklovlar bor va qaysi joylarda noaniqlik yoki risk mavjudligini ham tushuntirish.
 
-BaseURL: (https://chat-service.u-code.io (https://chat-service.u-code.io/v1/room)
+BaseURL: https://chat-service.u-code.io/v1/room
 ## 1. Servis nima vazifa bajaradi
 
 Bu servis real-time chat backend:
