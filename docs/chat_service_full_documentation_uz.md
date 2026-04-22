@@ -343,6 +343,7 @@ Success response misoli:
         "last_message_from": "+998995002065",
         "last_message_created_at": "Mon, 17 Mar 2026 10:05:00 UTC",
         "unread_message_count": 1,
+        "member_count": 2,
         "user_presence_status": "online",
         "user_presence_last_seen": "Mon, 17 Mar 2026 10:05:10 UTC"
       }
@@ -897,6 +898,12 @@ Payloaddagi `type` bo'sh bo'lsa:
 
 - ham `single`, ham `group` qaytadi
 
+Muhim (client uchun):
+
+- Socket event `rooms list` ba'zan `null` payload bilan kelishi mumkin (Go tomonda `nil` slice JSONga `null` bo'lib ketadi).
+- `null` payloadni client `[]` deb qabul qilib ro'yxatni tozalamasin. Eng to'g'ri yondashuv: `null` bo'lsa "no update" deb ignore qilish yoki oldingi listni saqlab qolish.
+- Amaliyotda ba'zi holatlarda bir xil `room_id` bir necha marta kelib qolishi mumkin (masalan DBda `room_members(room_id,row_id)` unique constraint qo'llanmagan yoki tarixiy duplicate data qolgan bo'lsa). Client `room_id` bo'yicha dedup qilib render qilishi tavsiya etiladi.
+
 ### 11.5 `room history`
 
 Vazifasi:
@@ -927,6 +934,25 @@ Oqim:
 3. `chat message` roomga emit qilinadi
 4. room memberlari topiladi
 5. har member uchun `rooms list` qayta hisoblanib push qilinadi
+
+Muhim aniqlik:
+
+- `chat message` payloadidagi `type` bu message type (`text`, `image`, `voice`, `file`).
+- Room list filteridagi `type` esa room type (`single`, `group`).
+- Bu ikkalasini aralashtirish mumkin emas.
+- Backend `chat message` dan keyin `rooms list`ni qayta push qiladi, lekin bu push client avval yuborgan custom filterlarni to'liq qayta tiklab bermasligi mumkin.
+
+Noto'g'ri misol:
+
+- `type: "text"` yuborib, backenddan shu `type` bilan room listni `single/group` kabi filter qilishni kutish.
+
+Amaliy natija:
+
+- Agar client chat oynasida kelgan generic `rooms list` eventini filtered UI state ustiga ko'r-ko'rona yozsa, roomlar vaqtincha "yo'qolib qolgandek" ko'rinishi mumkin.
+- To'g'ri client flow:
+- chat ichida `chat message` eventidan message listni yangilang
+- `rooms list` eventini esa global room store uchun ishlating yoki kerak bo'lsa o'z filteringiz bilan qayta ishlang
+- agar UI maxsus filter bilan ishlayotgan bo'lsa, `GET /v1/room` yoki `rooms list`ni shu filter mantig'i bilan client tomonda qayta hisoblang
 
 ### 11.7 `message:read`
 
@@ -1087,6 +1113,7 @@ Clientga qaytadigan room object ichida shular bo'ladi:
 - `last_message_from`
 - `last_message_created_at`
 - `unread_message_count`
+- `member_count` — xonadagi a'zolar soni (group uchun ayniqsa foydali)
 - `user_presence_status`
 - `user_presence_last_seen`
 
@@ -1605,6 +1632,7 @@ Kutiladigan response (shape):
         "to_name": "Porthos",
         "last_message": "Salom",
         "unread_message_count": 2,
+        "member_count": 2,
         "user_presence_status": "online"
       }
     ]
@@ -1798,6 +1826,7 @@ Ya'ni `GET rooms -> POST /v1/room` to'g'ridan-to'g'ri zanjir noto'g'ri.
 - Roomga kirish: `join room`
 - History: `room history` (socket) yoki `GET /v1/message`
 - Xabar yuborish: `chat message`
+- Agar xabar yuborgandan keyin room list filtered ko'rinishda saqlanishi kerak bo'lsa, client `rooms list` eventini o'z filter mantig'i bilan qayta ishlaydi
 - Read: `message:read`
 - Presence heartbeat: `presence:ping`
 
