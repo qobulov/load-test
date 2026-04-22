@@ -943,3 +943,88 @@ Future<String> openDm({required String peerRowId, required String peerName}) asy
 7. Reconnectdan keyin create emas, join/list ishlatiladi.
 8. `attributes.profiles[row_id]` bilan avatar/name chiqariladi.
 
+## 26. Last Online (`last_seen_at`) ni Flutterda ko'rsatish
+
+Bu bo'lim user qachon online bo'lganini (yoki oxirgi marta qachon ko'rilganini) ko'rsatish uchun.
+
+### 26.1 Qaysi eventdan olinadi
+
+- `presence.updated` eventida `row_id`, `status`, `last_seen_at` keladi.
+- `presence:get` yuborsangiz, javob ham `presence.updated` eventida keladi.
+
+`presence:get` payload:
+
+```json
+{
+  "row_id": "peer-row-id"
+}
+```
+
+### 26.2 Socket listener (Flutter)
+
+```dart
+socket.on('presence.updated', (p) {
+  final rowId = p['row_id'] as String?;
+  final status = p['status'] as String?; // online | offline
+  final lastSeenRaw = p['last_seen_at'] as String?;
+  if (rowId == null) return;
+
+  final lastSeen = _parseServerTime(lastSeenRaw);
+  presenceStore[rowId] = PresenceUi(
+    status: status ?? 'offline',
+    lastSeenAt: lastSeen,
+  );
+});
+```
+
+### 26.3 Server vaqt formatini parse qilish
+
+Backend ko'pincha RFC1123 format qaytaradi (`Thu, 26 Mar 2026 10:50:58 UTC`).
+
+```dart
+DateTime? _parseServerTime(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  try {
+    // intl package bilan parse qilish tavsiya etiladi.
+    final dt = DateFormat("EEE, dd MMM yyyy HH:mm:ss 'UTC'", 'en_US').parseUtc(raw);
+    return dt.toLocal();
+  } catch (_) {
+    return null;
+  }
+}
+```
+
+### 26.4 UI text (`online` / `last seen ...`)
+
+```dart
+String buildPresenceLabel(PresenceUi? p) {
+  if (p == null) return 'Unknown';
+  if (p.status == 'online') return 'Online';
+  if (p.lastSeenAt == null) return 'Offline';
+  return 'Last seen ${timeAgo(p.lastSeenAt!)}';
+}
+```
+
+`timeAgo` uchun oddiy misol:
+
+```dart
+String timeAgo(DateTime t) {
+  final d = DateTime.now().difference(t);
+  if (d.inSeconds < 60) return '${d.inSeconds}s ago';
+  if (d.inMinutes < 60) return '${d.inMinutes}m ago';
+  if (d.inHours < 24) return '${d.inHours}h ago';
+  return '${d.inDays}d ago';
+}
+```
+
+### 26.5 Qachon `presence:get` yuborish kerak
+
+1. Chat header ochilganda peer statusni tez olish uchun.
+2. App resume bo'lganda statusni refresh qilish uchun.
+3. Reconnectdan keyin roomdagi userlar uchun batch tarzda (navbat bilan).
+
+### 26.6 Muhim cheklov
+
+- Hozirgi backendda presence `row_id` bo'yicha global.
+- `project_id` kesimida alohida last online saqlanmaydi.
+
