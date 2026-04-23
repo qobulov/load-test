@@ -94,6 +94,7 @@ HTTP route'lar:
 - `GET /v1/room`
 - `POST /v1/room/exist`
 - `GET /v1/room/:item_id`
+- `DELETE /v1/room/:id`
 - `POST /v1/room-member`
 - `GET /v1/message`
 - `ANY /socket.io/*any`
@@ -167,6 +168,20 @@ Query:
 Natija:
 
 - shu `item_id + project_id` uchun room id
+
+#### `DELETE /v1/room/:id`
+
+Vazifasi:
+
+- roomni bazadan o'chirish
+
+Path param:
+
+- `id` - o'chiriladigan room UUID
+
+Response:
+
+- `200`
 
 #### `POST /v1/room-member`
 
@@ -472,6 +487,28 @@ Response:
   "error": "project_id is required"
 }
 ```
+
+#### `DELETE /v1/room/:id` - roomni o'chirish
+
+Misol:
+
+```bash
+curl -X DELETE http://localhost:8080/v1/room/f3f95d20-5fc4-4cf9-a8df-65de2d0cb8ea
+```
+
+Success response:
+
+```json
+{
+  "body": "room deleted",
+  "error": ""
+}
+```
+
+Xato holatlar:
+
+- `id` bo'sh bo'lsa `400`
+- DB xato bo'lsa `500`
 
 #### `POST /v1/room-member` - roomga member qo'shish
 
@@ -1069,7 +1106,53 @@ Shoh xabar yuboradi:
   Server -> Room: chat message { ... }
 ```
 
-### 11.10 Presence eventlar
+### 11.10 `room:delete`
+
+Vazifasi:
+
+- roomni bazadan o'chirish
+- room a'zolariga `room.deleted` broadcast qilish
+- barcha a'zolarning room listini yangilash
+
+#### Client -> Server payload:
+
+```json
+{
+  "room_id": "f3f95d20-5fc4-4cf9-a8df-65de2d0cb8ea",
+  "row_id": "48dc336f-17b6-4c0f-ad4b-d2e67b13ec2e",
+  "project_id": "592e6339-d867-489e-8e6a-74ea28e0818d"
+}
+```
+
+Fieldlar:
+
+- `room_id` — majburiy, o'chiriladigan room
+- `row_id` — majburiy, kim o'chirayotgani
+- `project_id` — optional, rooms list refresh uchun
+
+#### Server -> Client (broadcast):
+
+`room.deleted` — room ichidagi barcha socketlarga:
+
+```json
+{
+  "room_id": "f3f95d20-5fc4-4cf9-a8df-65de2d0cb8ea",
+  "by": "48dc336f-17b6-4c0f-ad4b-d2e67b13ec2e"
+}
+```
+
+So'ngra barcha a'zolarga yangilangan `rooms list` push qilinadi.
+
+#### Misol oqim:
+
+```
+Client -> Server: room:delete { room_id, row_id, project_id }
+Server: DB dan roomni o'chiradi
+Server -> Room members: room.deleted { room_id, by }
+Server -> Har bir member: rooms list (yangilangan)
+```
+
+### 11.11 Presence eventlar
 
 Eventlar:
 
