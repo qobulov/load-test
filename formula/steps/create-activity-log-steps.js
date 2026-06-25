@@ -22,9 +22,9 @@ export default function () {
     }), { headers });
 
     check(res, {
-        'status is 200': (r) => r.status === 201,
+        'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
     });
 

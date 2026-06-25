@@ -8,12 +8,12 @@ export default function () {
     const res = http.post(baseUrl, invoke('get_water_logs'), { headers });
 
     check(res, {
-        'status is 200': (r) => r.status === 201,
+        'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
         'has total': (r) => {
-            try { return r.json().data.total !== undefined; } catch (_) { return false; }
+            try { return r.json().data.data.total !== undefined; } catch (_) { return false; }
         },
     });
 

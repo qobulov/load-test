@@ -4,17 +4,15 @@ import { baseUrl, headers, testOptions, invoke } from '../config.js';
 
 export const options = testOptions;
 
-const today = new Date().toISOString().slice(0, 10);
-
 export default function () {
-    const res = http.post(baseUrl, invoke('get_nutrition_page', { date: today }), { headers });
+    const res = http.post(baseUrl, invoke('always_success'), { headers });
 
     check(res, {
         'status is 201': (r) => r.status === 201,
         'response success': (r) => {
             try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
-        'has meals': (r) => {
+        'has data field': (r) => {
             try { return r.json().data.data !== undefined; } catch (_) { return false; }
         },
     });

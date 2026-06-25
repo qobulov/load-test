@@ -8,12 +8,12 @@ export default function () {
     const res = http.post(baseUrl, invoke('get_achievements', { page: 1, limit: 20 }), { headers });
 
     check(res, {
-        'status is 200': (r) => r.status === 201,
+        'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
         'has achievements array': (r) => {
-            try { return Array.isArray(r.json().data.achievements); } catch (_) { return false; }
+            try { return Array.isArray(r.json().data.data.achievements); } catch (_) { return false; }
         },
     });
 

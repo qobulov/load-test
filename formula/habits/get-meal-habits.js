@@ -8,12 +8,12 @@ export default function () {
     const res = http.post(baseUrl, invoke('get_meal_habits'), { headers });
 
     check(res, {
-        'status is 200': (r) => r.status === 201,
+        'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
         'has data': (r) => {
-            try { return r.json().data !== undefined; } catch (_) { return false; }
+            try { return r.json().data.data !== undefined; } catch (_) { return false; }
         },
     });
 

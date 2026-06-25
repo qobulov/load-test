@@ -21,10 +21,10 @@ export default function () {
     check(res, {
         'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
         'has total_ml': (r) => {
-            try { return r.json().data.total_ml !== undefined; } catch (_) { return false; }
+            try { return r.json().data.data.total_ml !== undefined; } catch (_) { return false; }
         },
     });
 

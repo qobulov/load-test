@@ -28,10 +28,10 @@ export default function () {
     check(res, {
         'status is 201': (r) => r.status === 201,
         'response success': (r) => {
-            try { return r.json().status === 'success'; } catch (_) { return false; }
+            try { return r.json().data.status === 'success'; } catch (_) { return false; }
         },
         'has calorie_target': (r) => {
-            try { return r.json().data.daily_calories_target > 0; } catch (_) { return false; }
+            try { return r.json().data.data.daily_calories_target > 0; } catch (_) { return false; }
         },
     });
 
