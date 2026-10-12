@@ -2,8 +2,8 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export const options = {
-  vus: 1,
-  iterations: 5,
+  vus: 50,
+  iterations: 2,
 };
 
 function randomTestIP() {
