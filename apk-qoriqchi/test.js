@@ -4,8 +4,8 @@ import { check } from 'k6';
 const url = 'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg0MDkyNA:1xG8vm:rR6LkL6o7H-BwkY3nEWOYtGTXVtwtUrS4s4umHrtoMU/yosh';
 
 export const options = {
-  vus: 1,
-  iterations: 1,
+  vus: 2,
+  iterations: 10,
 };
 
 export default function () {
