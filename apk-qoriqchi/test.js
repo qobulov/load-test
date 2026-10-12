@@ -1,11 +1,11 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-const url = 'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg0MDkyNA:1xG8vm:rR6LkL6o7H-BwkY3nEWOYtGTXVtwtUrS4s4umHrtoMU/yosh';
+const url = 'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg1NTkwMw:1xG9DS:aip-GJIowsfUo9tWIJekZYbxLmT-8z2PL_FvYpls_G4/nafaqa';
 
 export const options = {
   vus: 2,
-  iterations: 10,
+  iterations: 30,
 };
 
 export default function () {
