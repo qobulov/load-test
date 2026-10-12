@@ -22,6 +22,9 @@ export default function () {
     },
     timeout: '10s',
   };
+  console.log(
+    `[START] VU=${__VU} ITER=${__ITER} TEST_IP=${randomIP}`
+  );
 
 const res = http.get(
   'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg0MDkyNA:1xG8vm:rR6LkL6o7H-BwkY3nEWOYtGTXVtwtUrS4s4umHrtoMU/yosh',
