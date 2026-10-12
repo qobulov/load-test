@@ -1,24 +1,38 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
-const url = 'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg1NTkwMw:1xG9DS:aip-GJIowsfUo9tWIJekZYbxLmT-8z2PL_FvYpls_G4/nafaqa';
-
 export const options = {
   vus: 2,
-  iterations: 30,
+  iterations: 15,
 };
 
-export default function () {
-  const res = http.get(url, {
-    timeout: '15s',
-    tags: { test_type: 'single_request' },
-  });
+function randomTestIP() {
+  // Hujjatlar va testlar uchun ajratilgan IP diapazoni
+  return `192.0.2.${Math.floor(Math.random() * 254) + 1}`;
+}
 
-  console.log(`Status: ${res.status}`);
-  console.log(`Duration: ${res.timings.duration} ms`);
+export default function () {
+  const randomIP = randomTestIP();
+
+  const params = {
+    headers: {
+      'X-Forwarded-For': randomIP,
+      'True-Client-IP': randomIP,
+      'Content-Type': 'application/json',
+    },
+    timeout: '10s',
+  };
+
+const res = http.get(
+  'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg0MDkyNA:1xG8vm:rR6LkL6o7H-BwkY3nEWOYtGTXVtwtUrS4s4umHrtoMU/yosh',
+  params
+);
 
   check(res, {
-    'HTTP status is 2xx or 3xx': (r) =>
-      r.status >= 200 && r.status < 400,
+    'status is 200': (r) => r.status === 200,
   });
+
+  console.log(
+    `VU=${__VU} ITER=${__ITER} TEST_IP=${randomIP} STATUS=${res.status}`
+  );
 }
