@@ -46,7 +46,7 @@ export default function () {
   };
 
   // Requestlarni 0–15 soniya oralig'ida yoyish
-  sleep(1 + Math.random() * 14);
+  sleep(15 + Math.random() * 15);
 
   // 1. Birinchi endpoint
   const res1 = http.get(endpoints[0], {
@@ -63,7 +63,7 @@ export default function () {
     `duration=${res1.timings.duration.toFixed(0)}ms`
   );
 
-  sleep(1);
+  sleep(15 + Math.random() * 15);
 
   // 2. Ikkinchi endpoint (aynan shu userning clientIp manzili bilan ketadi)
   const res2 = http.get(endpoints[1], {
