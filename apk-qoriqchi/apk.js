@@ -34,7 +34,7 @@ const clientIp = generateUniqueTestIPs(100);
 
 export default function () {
   const userId = `test-user-${__VU}`;
-  const simulatedIP = testIPs[__VU - 1];
+  const simulatedIP = clientIp[__VU - 1];
   const requestParams = {
     headers: {
       'X-Forwarded-For': simulatedIP,
