@@ -34,12 +34,12 @@ const clientIp = generateUniqueTestIPs(100);
 
 export default function () {
   const userId = `test-user-${__VU}`;
-  
+  const simulatedIP = testIPs[__VU - 1];
   const requestParams = {
     headers: {
-      'X-Forwarded-For': clientIp,
-      'X-Real-IP': clientIp,
-      'CF-Connecting-IP': clientIp,
+      'X-Forwarded-For': simulatedIP,
+      'X-Real-IP': simulatedIP,
+      'CF-Connecting-IP': simulatedIP,
       'Content-Type': 'application/json',
     },
     timeout: '15s',
@@ -59,7 +59,7 @@ export default function () {
   });
 
   console.log(
-    `[A] user=${userId} ip=${clientIp} status=${res1.status} ` +
+    `[A] user=${userId} ip=${simulatedIP} status=${res1.status} ` +
     `duration=${res1.timings.duration.toFixed(0)}ms`
   );
 
@@ -76,7 +76,7 @@ export default function () {
   });
 
   console.log(
-    `[B] user=${userId} ip=${clientIp} status=${res2.status} ` +
+    `[B] user=${userId} ip=${simulatedIP} status=${res2.status} ` +
     `duration=${res2.timings.duration.toFixed(0)}ms`
   );
 }
