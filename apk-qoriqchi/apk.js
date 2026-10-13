@@ -29,19 +29,16 @@ function generateUniqueTestIPs(count = 100) {
     (_, index) => `192.0.2.${index + 1}`
   );
 }
+// Har bir VU (user) uchun o'ziga xos random IP
+const clientIp = generateUniqueTestIPs(100);
 
-const ips = generateUniqueTestIPs(100);
-
-console.log('Jami IP qiymatlari:', ips.length);
-console.log('Unikal qiymatlar:', new Set(ips).size);
-console.log(ips);
+console.log('Jami IP qiymatlari:', clientIp.length);
+console.log('Unikal qiymatlar:', new Set(clientIp).size);
+console.log(clientIp);
 
 export default function () {
   const userId = `test-user-${__VU}`;
   
-  // Har bir VU (user) uchun o'ziga xos random IP
-const clientIp = generateUniqueTestIPs(100);
-
   const requestParams = {
     headers: {
       'X-Forwarded-For': clientIp,
