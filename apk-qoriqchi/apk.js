@@ -19,18 +19,28 @@ const endpoints = [
 
 
 // Tasodifiy unikal IP generatsiya qilish (10.x.x.x diapazonida)
-function getRandomIp() {
-  const o2 = Math.floor(Math.random() * 255);
-  const o3 = Math.floor(Math.random() * 255);
-  const o4 = Math.floor(Math.random() * 254) + 1;
-  return `10.${o2}.${o3}.${o4}`;
+function generateUniqueTestIPs(count = 100) {
+  if (count < 1 || count > 254) {
+    throw new Error('count 1 dan 254 gacha bo‘lishi kerak');
+  }
+
+  return Array.from(
+    { length: count },
+    (_, index) => `192.0.2.${index + 1}`
+  );
 }
+
+const ips = generateUniqueTestIPs(100);
+
+console.log('Jami IP qiymatlari:', ips.length);
+console.log('Unikal qiymatlar:', new Set(ips).size);
+console.log(ips);
 
 export default function () {
   const userId = `test-user-${__VU}`;
   
   // Har bir VU (user) uchun o'ziga xos random IP
-  const clientIp = getRandomIp();
+const clientIp = generateUniqueTestIPs(100);
 
   const requestParams = {
     headers: {
