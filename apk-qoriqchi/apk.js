@@ -5,9 +5,9 @@ export const options = {
   scenarios: {
     two_endpoints: {
       executor: 'per-vu-iterations',
-      vus: 100,
-      iterations: 1,
-      maxDuration: '2m',
+      vus: 2,
+      iterations: 50,
+      maxDuration: '30m',
     },
   },
 };
