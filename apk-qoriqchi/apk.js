@@ -19,7 +19,7 @@ const endpoints = [
 
 
 // Tasodifiy unikal IP generatsiya qilish (10.x.x.x diapazonida)
-function generateUniqueTestIPs() {
+function generateUniqueTestIPs(count) {
   if (count < 1 || count > 254) {
     throw new Error('count 1 dan 254 gacha bo‘lishi kerak');
   }
