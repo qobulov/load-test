@@ -33,8 +33,8 @@ function generateUniqueTestIPs(count) {
 const clientIp = generateUniqueTestIPs(100);
 
 export default function () {
-  const userId = `test-user-${__VU}`;
-  const simulatedIP = clientIp[__VU - 1];
+  const userId = `test-user-${__ITER + 1}`;
+  const simulatedIP = clientIp[__ITER];
   const requestParams = {
     headers: {
       'X-Forwarded-For': simulatedIP,
