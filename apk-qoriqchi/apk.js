@@ -19,7 +19,7 @@ const endpoints = [
 
 
 // Tasodifiy unikal IP generatsiya qilish (10.x.x.x diapazonida)
-function generateUniqueTestIPs(count = 100) {
+function generateUniqueTestIPs() {
   if (count < 1 || count > 254) {
     throw new Error('count 1 dan 254 gacha bo‘lishi kerak');
   }
@@ -31,10 +31,6 @@ function generateUniqueTestIPs(count = 100) {
 }
 // Har bir VU (user) uchun o'ziga xos random IP
 const clientIp = generateUniqueTestIPs(100);
-
-console.log('Jami IP qiymatlari:', clientIp.length);
-console.log('Unikal qiymatlar:', new Set(clientIp).size);
-console.log(clientIp);
 
 export default function () {
   const userId = `test-user-${__VU}`;
