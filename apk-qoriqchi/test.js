@@ -1,41 +1,71 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, sleep } from 'k6';
+
+// 10 ta proksi ro'yxati
+const proxyList = [
+  'http://aaupjlot:qnj8c1w63clx@45.38.107.97:6014',
+  'http://aaupjlot:qnj8c1w63clx@64.137.96.74:6641',
+  'http://aaupjlot:qnj8c1w63clx@198.23.243.226:6361',
+  'http://aaupjlot:qnj8c1w63clx@38.154.185.97:6370',
+  'http://aaupjlot:qnj8c1w63clx@84.247.60.125:6095',
+  'http://aaupjlot:qnj8c1w63clx@191.96.254.138:6185',
+  'http://aaupjlot:qnj8c1w63clx@198.46.161.42:5092',
+  'http://aaupjlot:qnj8c1w63clx@64.137.10.153:5803',
+  'http://aaupjlot:qnj8c1w63clx@104.164.49.38:7693',
+  'http://aaupjlot:qnj8c1w63clx@23.26.71.145:5628',
+];
 
 export const options = {
-  vus: 50,
-  iterations: 100,
+  scenarios: {
+    two_endpoints: {
+      executor: 'per-vu-iterations',
+      vus: 100,
+      iterations: 1,
+      maxDuration: '2m',
+    },
+  },
 };
 
-function randomTestIP() {
-  // Hujjatlar va testlar uchun ajratilgan IP diapazoni
-  return `192.0.2.${Math.floor(Math.random() * 254) + 1}`;
-}
+const endpoints = [
+  'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/NDUzMjg4MA:1xGUaJ:i8YQN33tvb44suQzlwoiNARvSxSSV2gg5yj-fn5J5lQ/yosh',
+  'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/NDUzMjg4MA:1xGUaJ:i8YQN33tvb44suQzlwoiNARvSxSSV2gg5yj-fn5J5lQ/nafaqa',
+];
 
 export default function () {
-  const randomIP = randomTestIP();
+  const userId = `test-user-${__VU}`;
+  
+  // 100 ta VU o'rtasida 10 ta proksini teng taqsimlash
+  const assignedProxy = proxyList[(__VU - 1) % proxyList.length];
 
-  const params = {
-    headers: {
-      'X-Forwarded-For': randomIP,
-      'True-Client-IP': randomIP,
-      'Content-Type': 'application/json',
-    },
-    timeout: '10s',
+  const requestParams = {
+    // xk6-proxy orqali yig'ilganda ishlaydi
+    proxy: assignedProxy,
+    timeout: '15s',
   };
-  console.log(
-    `[START] VU=${__VU} ITER=${__ITER} TEST_IP=${randomIP}`
-  );
 
-const res = http.get(
-  'https://project.cybercontrol.uz/r/83_mfzMiX_tGBKg8EBr71A/javob/Mzg0MDkyNA:1xG8vm:rR6LkL6o7H-BwkY3nEWOYtGTXVtwtUrS4s4umHrtoMU/yosh',
-  params
-);
+  sleep(Math.random() * 15);
 
-  check(res, {
-    'status is 200': (r) => r.status === 200,
+  const res1 = http.get(endpoints[0], {
+    ...requestParams,
+    tags: { endpoint: 'A' },
   });
 
-  console.log(
-    `VU=${__VU} ITER=${__ITER} TEST_IP=${randomIP} STATUS=${res.status}`
-  );
+  check(res1, {
+    'Endpoint A: HTTP 200': (r) => r.status === 200,
+  });
+
+  console.log(`[A] user=${userId} via=${assignedProxy.split('@')[1]} status=${res1.status}`);
+
+  sleep(1);
+
+  const res2 = http.get(endpoints[1], {
+    ...requestParams,
+    tags: { endpoint: 'B' },
+  });
+
+  check(res2, {
+    'Endpoint B: HTTP 200': (r) => r.status === 200,
+  });
+
+  console.log(`[B] user=${userId} via=${assignedProxy.split('@')[1]} status=${res2.status}`);
 }
