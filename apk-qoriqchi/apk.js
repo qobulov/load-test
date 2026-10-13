@@ -45,38 +45,27 @@ export default function () {
     timeout: '15s',
   };
 
+
+
+// Har bir user uchun tasodifiy bitta endpoint tanlash
+const endpointIndex = Math.floor(Math.random() * endpoints.length);
+const endpoint = endpoints[endpointIndex];
+const endpointName = endpointIndex === 0 ? 'A' : 'B';
+
+const res = http.get(endpoint, {
+  timeout: '15s',
+  tags: { endpoint: endpointName },
+});
+
+check(res, {
+  [`Endpoint ${endpointName}: HTTP 200`]: (r) => r.status === 200,
+});
+
+console.log(
+  `[${endpointName}] user=${userId} ` +
+  `status=${res.status} ` +
+  `duration=${res.timings.duration.toFixed(0)}ms`
+);
   // Requestlarni 0–15 soniya oralig'ida yoyish
-  sleep(15 + Math.random() * 15);
-
-  // 1. Birinchi endpoint
-  const res1 = http.get(endpoints[0], {
-    ...requestParams,
-    tags: { endpoint: 'A' },
-  });
-  
-  check(res1, {
-    'Endpoint A: HTTP 200': (r) => r.status === 200,
-  });
-
-  console.log(
-    `[A] user=${userId} ip=${simulatedIP} status=${res1.status} ` +
-    `duration=${res1.timings.duration.toFixed(0)}ms`
-  );
-
-  sleep(15 + Math.random() * 15);
-
-  // 2. Ikkinchi endpoint (aynan shu userning clientIp manzili bilan ketadi)
-  const res2 = http.get(endpoints[1], {
-    ...requestParams,
-    tags: { endpoint: 'B' },
-  });
-
-  check(res2, {
-    'Endpoint B: HTTP 200': (r) => r.status === 200,
-  });
-
-  console.log(
-    `[B] user=${userId} ip=${simulatedIP} status=${res2.status} ` +
-    `duration=${res2.timings.duration.toFixed(0)}ms`
-  );
+  sleep(5 + Math.random() * 15);
 }
