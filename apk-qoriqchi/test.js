@@ -43,7 +43,7 @@ export default function () {
     timeout: '15s',
   };
 
-  sleep(Math.random() * 15);
+  sleep(1 + Math.random() * 14);
 
   const res1 = http.get(endpoints[0], {
     ...requestParams,

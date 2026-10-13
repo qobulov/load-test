@@ -43,14 +43,14 @@ export default function () {
   };
 
   // Requestlarni 0–15 soniya oralig'ida yoyish
-  sleep(Math.random() * 15);
+  sleep(1 + Math.random() * 14);
 
   // 1. Birinchi endpoint
   const res1 = http.get(endpoints[0], {
     ...requestParams,
     tags: { endpoint: 'A' },
   });
-
+  
   check(res1, {
     'Endpoint A: HTTP 200': (r) => r.status === 200,
   });
