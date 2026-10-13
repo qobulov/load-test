@@ -64,7 +64,8 @@ check(res, {
 console.log(
   `[${endpointName}] user=${userId} ` +
   `status=${res.status} ` +
-  `duration=${res.timings.duration.toFixed(0)}ms`
+  `duration=${res.timings.duration.toFixed(0)}ms`+
+  `ip=${simulatedIP}`
 );
   // Requestlarni 0–15 soniya oralig'ida yoyish
   sleep(5 + Math.random() * 15);
